@@ -1,15 +1,25 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
 
   css: ['~/assets/css/main.css'],
+  
   modules: [
-    '@nuxtjs/tailwindcss', 'nuxt-vuefire'
+    'nuxt-vuefire'
   ],
+  
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
+  
   typescript: {
     strict: true
   },
+  
   vuefire: {
     config: {
       apiKey: process.env.FIREBASE_API_KEY,
