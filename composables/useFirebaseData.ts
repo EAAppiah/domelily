@@ -10,6 +10,7 @@ import { useDatabase, useDatabaseObject, useDatabaseList } from "vuefire";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
+
 // Type definitions
 export interface Service {
   id: string;

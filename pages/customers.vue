@@ -7,13 +7,6 @@
           <p class="text-gray-600">Add and manage your customers</p>
         </div>
         <div class="flex-shrink-0">
-          <PrintButton
-            page-type="customers"
-            :data="{ customers }"
-            button-text="Print List"
-            :disabled="!customers || customers.length === 0"
-            class="w-full sm:w-auto"
-          />
         </div>
       </div>
     </div>
@@ -30,7 +23,8 @@
               v-model="newCustomer.name"
               type="text"
               required
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              :disabled="addCustomerLoading.isLoading.value"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="Customer name"
             >
           </div>
@@ -42,23 +36,24 @@
               type="number"
               step="0.01"
               min="0"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              :disabled="addCustomerLoading.isLoading.value"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="0.00"
             >
           </div>
           
           <button
             type="submit"
-            :disabled="!newCustomer.name || isAddingCustomer"
+            :disabled="!newCustomer.name || addCustomerLoading.isLoading.value"
             class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
           >
-            <span v-if="!isAddingCustomer">Add Customer</span>
+            <span v-if="!addCustomerLoading.isLoading.value">Add Customer</span>
             <span v-else class="flex items-center justify-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Adding...
+              Adding Customer...
             </span>
           </button>
         </form>
@@ -74,13 +69,29 @@
           </div>
         </div>
         
-        <div class="space-y-3 max-h-96 overflow-y-auto">
+        <!-- Loading State for Customer List -->
+        <div v-if="customersLoading" class="space-y-3 max-h-96">
+          <div v-for="n in 3" :key="n" class="p-4 border border-gray-200 rounded-lg animate-pulse">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+              <div class="text-right">
+                <div class="h-6 bg-gray-300 rounded w-16 mb-1"></div>
+                <div class="h-3 bg-gray-200 rounded w-12"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-else class="space-y-3 max-h-96 overflow-y-auto">
           <div v-if="!customers || customers.length === 0" class="text-center py-8 text-gray-500">
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
             </svg>
-            <p>No customers yet</p>
-            <p class="text-sm">Add your first customer</p>
+            <p class="text-lg font-medium">No customers yet</p>
+            <p class="text-sm">Add your first customer to get started</p>
           </div>
           
           <div
@@ -97,7 +108,7 @@
               </div>
               <div class="text-right">
                 <div class="text-lg font-semibold text-green-600">
-                  ${{ (customer.credits || 0).toFixed(2) }}
+                  {{ formatCurrency(customer.credits) }}
                 </div>
                 <div class="text-xs text-gray-500">Credits</div>
               </div>
@@ -112,46 +123,50 @@
 <script setup>
 
 const { customers, addCustomer } = useFirebaseData()
+const { showSuccess, showError } = useNotifications()
+const { createLoadingState } = useLoadingState()
+const { formatCurrency, formatDate } = useFormatting()
 
-const isAddingCustomer = ref(false)
+// Loading states
+const addCustomerLoading = createLoadingState()
+const customersLoading = ref(false)
+
 const newCustomer = ref({
   name: '',
   credits: 0
 })
 
 const addNewCustomer = async () => {
-  if (!newCustomer.value.name || isAddingCustomer.value) return
-
-  isAddingCustomer.value = true
+  if (!newCustomer.value.name) {
+    showError('Please enter a customer name')
+    return
+  }
 
   try {
-    await addCustomer({
-      name: newCustomer.value.name,
-      credits: parseFloat(newCustomer.value.credits) || 0
-    })
-    
-    newCustomer.value = {
-      name: '',
-      credits: 0
-    }
+    await addCustomerLoading.withLoading(async () => {
+      await addCustomer({
+        name: newCustomer.value.name,
+        credits: parseFloat(newCustomer.value.credits) || 0
+      })
+      
+      // Reset form
+      newCustomer.value = {
+        name: '',
+        credits: 0
+      }
 
-    // Success notification
-    const notification = document.createElement('div')
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50'
-    notification.textContent = 'Customer added successfully!'
-    document.body.appendChild(notification)
-    setTimeout(() => notification.remove(), 3000)
-    
+      showSuccess('Customer added successfully!')
+    })
   } catch (error) {
     console.error('Error adding customer:', error)
-    alert('Error adding customer. Please try again.')
-  } finally {
-    isAddingCustomer.value = false
+    showError('Failed to add customer. Please try again.')
   }
 }
 
-const formatDate = (timestamp) => {
-  if (!timestamp) return 'Unknown'
-  return new Date(timestamp).toLocaleDateString()
-}
+onMounted(() => {
+  customersLoading.value = true
+  setTimeout(() => {
+    customersLoading.value = false
+  }, 1000)
+})
 </script>
