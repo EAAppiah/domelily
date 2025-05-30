@@ -9,7 +9,7 @@
               <span class="text-white font-bold text-lg">S</span>
             </div>
             <div>
-              <h1 class="text-xl font-semibold text-gray-900">SalesPro</h1>
+              <h1 class="text-xl font-semibold text-gray-900">Domemily Enterprise</h1>
               <p class="text-xs text-gray-500">Professional Sales Management</p>
             </div>
           </div>

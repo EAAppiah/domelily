@@ -4,17 +4,6 @@
       <div>
         <h2 class="text-2xl font-bold text-gray-900 mb-2">New Sale</h2>
       </div>
-      <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-2">
-          <label class="text-sm font-medium text-gray-700">Business Name:</label>
-          <input
-            v-model="businessName"
-            type="text"
-            placeholder="Enter business name"
-            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-          >
-        </div>
-      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -357,7 +346,7 @@
     <div id="print-receipt" style="display: none;">
       <div style="max-width: 320px; margin: 0 auto; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.4;">
         <div style="text-align: center; margin-bottom: 16px;">
-          <h2 style="font-weight: bold; font-size: 16px; margin: 0 0 4px 0;">{{ businessName || 'Your Business' }}</h2>
+          <h2 style="font-weight: bold; font-size: 16px; margin: 0 0 4px 0;">Domemily Enterprise</h2>
           <p style="font-size: 10px; color: #666; margin: 0;">Receipt</p>
           <p style="font-size: 10px; color: #666; margin: 0;">{{ formatDate(lastTransaction?.timestamp) }}</p>
         </div>
@@ -414,7 +403,7 @@ const selectedCustomer = ref('')
 const paymentMethod = ref('cash')
 const creditsToAdd = ref('')
 const lastTransaction = ref(null)
-const businessName = ref('SalesPro')
+
 
 const newService = ref({
   name: '',
