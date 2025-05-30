@@ -248,8 +248,9 @@
           </span>
         </button>
 
-        <!-- Print Receipt Button (appears after successful payment) -->
-        <div v-if="lastTransaction" class="mt-3">
+        <!-- Print Receipt Buttons (appears after successful payment) -->
+        <div v-if="lastTransaction" class="mt-3 space-y-2">
+          <!-- Desktop/Web Print Button -->
           <button
             @click="printReceipt"
             class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
@@ -258,6 +259,29 @@
               <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
             </svg>
             <span>Print Receipt</span>
+          </button>
+          
+          <!-- Mobile Share/Save Button -->
+          <button
+            @click="shareReceipt"
+            class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
+            </svg>
+            <span>Share Receipt</span>
+          </button>
+          
+          <!-- View Receipt Button -->
+          <button
+            @click="showReceiptModal = true"
+            class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>View Receipt</span>
           </button>
         </div>
       </div>
@@ -342,37 +366,81 @@
       </div>
     </div>
 
-    <!-- Hidden Print Receipt -->
-    <div id="print-receipt" style="display: none;">
-      <div style="max-width: 320px; margin: 0 auto; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.4;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <h2 style="font-weight: bold; font-size: 16px; margin: 0 0 4px 0;">Domemily Enterprise</h2>
-          <p style="font-size: 10px; color: #666; margin: 0;">Receipt</p>
-          <p style="font-size: 10px; color: #666; margin: 0;">{{ formatDate(lastTransaction?.timestamp) }}</p>
+    <!-- Receipt Modal -->
+    <div
+      v-if="showReceiptModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      @click="showReceiptModal = false"
+    >
+      <div
+        class="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto"
+        @click.stop
+      >
+        <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Receipt</h3>
+          <button
+            @click="showReceiptModal = false"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
         </div>
         
-        <div style="border-top: 1px dashed #333; border-bottom: 1px dashed #333; padding: 8px 0; margin-bottom: 8px;">
-          <div v-for="item in lastTransaction?.items" :key="item.id" style="display: flex; justify-content: space-between; padding: 2px 0;">
-            <div>
-              <span>{{ item.name }}</span>
-              <span v-if="item.quantity > 1" style="font-size: 10px; color: #666;"> x{{ item.quantity }}</span>
+        <div class="p-6" id="receipt-content">
+          <div class="text-center mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-1">Domemily Enterprise</h2>
+            <p class="text-sm text-gray-600">Receipt</p>
+            <p class="text-sm text-gray-600">{{ formatDate(lastTransaction?.timestamp) }}</p>
+          </div>
+          
+          <div class="border-t border-b border-dashed border-gray-300 py-4 mb-4">
+            <div v-for="item in lastTransaction?.items" :key="item.id" class="flex justify-between items-center py-2">
+              <div>
+                <span class="font-medium">{{ item.name }}</span>
+                <span v-if="item.quantity > 1" class="text-sm text-gray-600 ml-1">x{{ item.quantity }}</span>
+              </div>
+              <span class="font-semibold">{{ formatCurrency(item.price * item.quantity) }}</span>
             </div>
-            <span>{{ formatCurrency(item.price * item.quantity) }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 pb-4 mb-4">
+            <span>Total:</span>
+            <span class="text-green-600">{{ formatCurrency(lastTransaction?.total) }}</span>
+          </div>
+          
+          <div class="text-sm text-gray-600 mb-6">
+            <p class="mb-1">Payment: {{ lastTransaction?.paymentMethod }}</p>
+            <p v-if="lastTransaction?.customer" class="mb-1">Customer: {{ lastTransaction.customer.name }}</p>
+          </div>
+          
+          <div class="text-center text-sm text-gray-600">
+            <p>Thank you for your business!</p>
           </div>
         </div>
         
-        <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px dashed #333; padding-bottom: 8px; margin-bottom: 8px;">
-          <span>Total:</span>
-          <span>{{ formatCurrency(lastTransaction?.total) }}</span>
-        </div>
-        
-        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
-          <p style="margin: 2px 0;">Payment: {{ lastTransaction?.paymentMethod }}</p>
-          <p v-if="lastTransaction?.customer" style="margin: 2px 0;">Customer: {{ lastTransaction.customer.name }}</p>
-        </div>
-        
-        <div style="text-align: center; font-size: 10px; color: #666; margin-top: 16px;">
-          <p style="margin: 0;">Thank you for your business!</p>
+        <div class="sticky bottom-0 bg-white border-t p-4 space-y-2">
+          <button
+            @click="downloadReceiptImage"
+            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            <span>Download as Image</span>
+          </button>
+          
+          <button
+            @click="copyReceiptText"
+            class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+            </svg>
+            <span>Copy Text</span>
+          </button>
         </div>
       </div>
     </div>
@@ -396,6 +464,7 @@ const servicesLoading = ref(false)
 // Modal and dropdown states
 const showAddServiceModal = ref(false)
 const showServiceDropdown = ref(false)
+const showReceiptModal = ref(false)
 const serviceSearch = ref('')
 
 const cart = ref([])
@@ -403,7 +472,6 @@ const selectedCustomer = ref('')
 const paymentMethod = ref('cash')
 const creditsToAdd = ref('')
 const lastTransaction = ref(null)
-
 
 const newService = ref({
   name: '',
@@ -432,19 +500,240 @@ const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleString()
 }
 
-// Print function
+// Enhanced printing functions for mobile compatibility
 const printReceipt = () => {
-  const printContent = document.getElementById('print-receipt')
-  const originalContent = document.body.innerHTML
+  // Create a new window for printing (works better on desktop)
+  const printWindow = window.open('', '_blank', 'width=400,height=600')
   
-  document.body.innerHTML = printContent.innerHTML
-  window.print()
-  document.body.innerHTML = originalContent
+  const receiptHTML = generateReceiptHTML()
   
-  // Re-initialize Vue after restoring content
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Receipt - Domemily Enterprise</title>
+      <style>
+        body { 
+          font-family: 'Courier New', monospace; 
+          margin: 0; 
+          padding: 20px; 
+          font-size: 12px; 
+          line-height: 1.4;
+          max-width: 320px;
+        }
+        .receipt-header { text-align: center; margin-bottom: 16px; }
+        .receipt-title { font-weight: bold; font-size: 16px; margin: 0 0 4px 0; }
+        .receipt-subtitle { font-size: 10px; color: #666; margin: 0; }
+        .receipt-items { 
+          border-top: 1px dashed #333; 
+          border-bottom: 1px dashed #333; 
+          padding: 8px 0; 
+          margin-bottom: 8px; 
+        }
+        .receipt-item { 
+          display: flex; 
+          justify-content: space-between; 
+          padding: 2px 0; 
+        }
+        .receipt-total { 
+          display: flex; 
+          justify-content: space-between; 
+          font-weight: bold; 
+          border-bottom: 1px dashed #333; 
+          padding-bottom: 8px; 
+          margin-bottom: 8px; 
+        }
+        .receipt-info { font-size: 10px; color: #666; margin-bottom: 8px; }
+        .receipt-info p { margin: 2px 0; }
+        .receipt-footer { text-align: center; font-size: 10px; color: #666; margin-top: 16px; }
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>${receiptHTML}</body>
+    </html>
+  `)
+  
+  printWindow.document.close()
+  
+  // Wait for content to load then print
   setTimeout(() => {
-    location.reload()
-  }, 100)
+    printWindow.print()
+    printWindow.close()
+  }, 250)
+}
+
+const shareReceipt = async () => {
+  const receiptText = generateReceiptText()
+  
+  // Check if Web Share API is supported (mainly on mobile)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Receipt - Domemily Enterprise',
+        text: receiptText,
+      })
+      showSuccess('Receipt shared successfully!')
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error)
+        fallbackShare(receiptText)
+      }
+    }
+  } else {
+    fallbackShare(receiptText)
+  }
+}
+
+const fallbackShare = (text) => {
+  // Fallback for browsers that don't support Web Share API
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showSuccess('Receipt copied to clipboard!')
+    }).catch(() => {
+      showError('Could not copy receipt. Please try again.')
+    })
+  } else {
+    // Very old browsers fallback
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      showSuccess('Receipt copied to clipboard!')
+    } catch (err) {
+      showError('Could not copy receipt. Please try again.')
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
+const downloadReceiptImage = async () => {
+  try {
+    // Import html2canvas dynamically
+    const html2canvas = await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+    
+    const receiptElement = document.getElementById('receipt-content')
+    
+    const canvas = await html2canvas.default(receiptElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    })
+    
+    // Convert canvas to blob
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `receipt-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      showSuccess('Receipt image downloaded!')
+    }, 'image/png')
+    
+  } catch (error) {
+    console.error('Error generating image:', error)
+    showError('Could not generate image. Please try copying text instead.')
+  }
+}
+
+const copyReceiptText = async () => {
+  const receiptText = generateReceiptText()
+  
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(receiptText)
+      showSuccess('Receipt text copied to clipboard!')
+    } catch (error) {
+      console.error('Error copying text:', error)
+      showError('Could not copy text. Please try again.')
+    }
+  } else {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea')
+    textArea.value = receiptText
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      showSuccess('Receipt text copied to clipboard!')
+    } catch (err) {
+      showError('Could not copy text. Please try again.')
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
+const generateReceiptHTML = () => {
+  if (!lastTransaction.value) return ''
+  
+  const items = lastTransaction.value.items.map(item => `
+    <div class="receipt-item">
+      <div>
+        <span>${item.name}</span>
+        ${item.quantity > 1 ? `<span style="font-size: 10px; color: #666;"> x${item.quantity}</span>` : ''}
+      </div>
+      <span>${formatCurrency(item.price * item.quantity)}</span>
+    </div>
+  `).join('')
+  
+  return `
+    <div class="receipt-header">
+      <h2 class="receipt-title">Domemily Enterprise</h2>
+      <p class="receipt-subtitle">Receipt</p>
+      <p class="receipt-subtitle">${formatDate(lastTransaction.value.timestamp)}</p>
+    </div>
+    
+    <div class="receipt-items">
+      ${items}
+    </div>
+    
+    <div class="receipt-total">
+      <span>Total:</span>
+      <span>${formatCurrency(lastTransaction.value.total)}</span>
+    </div>
+    
+    <div class="receipt-info">
+      <p>Payment: ${lastTransaction.value.paymentMethod}</p>
+      ${lastTransaction.value.customer ? `<p>Customer: ${lastTransaction.value.customer.name}</p>` : ''}
+    </div>
+    
+    <div class="receipt-footer">
+      <p>Thank you for your business!</p>
+    </div>
+  `
+}
+
+const generateReceiptText = () => {
+  if (!lastTransaction.value) return ''
+  
+  const items = lastTransaction.value.items.map(item => 
+    `${item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''} - ${formatCurrency(item.price * item.quantity)}`
+  ).join('\n')
+  
+  return `
+DOMEMILY ENTERPRISE
+Receipt
+${formatDate(lastTransaction.value.timestamp)}
+
+${'-'.repeat(32)}
+${items}
+${'-'.repeat(32)}
+
+Total: ${formatCurrency(lastTransaction.value.total)}
+
+Payment: ${lastTransaction.value.paymentMethod}
+${lastTransaction.value.customer ? `Customer: ${lastTransaction.value.customer.name}` : ''}
+
+Thank you for your business!
+  `.trim()
 }
 
 // Modal functions
