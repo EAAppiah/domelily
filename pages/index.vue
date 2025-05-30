@@ -1,8 +1,10 @@
 <template>
   <div class="pb-20 lg:pb-0">
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">New Sale</h2>
-      <p class="text-gray-600">Create a new transaction</p>
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">New Sale</h2>
+        <p class="text-gray-600">Create a new transaction</p>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -187,10 +189,55 @@
         </button>
       </div>
     </div>
+
+    <!-- Receipt Print Dialog -->
+    <div v-if="showReceiptDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Payment Complete!</h3>
+            <button @click="closeReceiptDialog" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <p class="text-gray-600">Transaction completed successfully!</p>
+          </div>
+
+          <div class="flex space-x-3">
+            <button
+              @click="printReceipt"
+              class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center justify-center space-x-2"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+              </svg>
+              <span>Print Receipt</span>
+            </button>
+            
+            <button
+              @click="closeReceiptDialog"
+              class="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+            >
+              Skip
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+
 const { services, customers, addService, addTransaction, updateCustomerCredits } = useFirebaseData()
 
 const cart = ref([])
@@ -198,6 +245,8 @@ const selectedCustomer = ref('')
 const paymentMethod = ref('cash')
 const creditsToAdd = ref('')
 const isProcessing = ref(false)
+const showReceiptDialog = ref(false)
+const lastTransaction = ref(null)
 
 const newService = ref({
   name: '',
@@ -278,23 +327,25 @@ const processPayment = async () => {
       customer: selectedCustomer.value ? {
         id: selectedCustomer.value.id,
         name: selectedCustomer.value.name,
-        email: selectedCustomer.value.email
-      } : null
+      } : null,
+      timestamp: Date.now()
     }
 
-    await addTransaction(transaction)
+    const transactionId = await addTransaction(transaction)
+    
+    // Store the transaction for receipt printing
+    lastTransaction.value = {
+      ...transaction,
+      id: transactionId
+    }
     
     // Reset form
     cart.value = []
     selectedCustomer.value = ''
     paymentMethod.value = 'cash'
     
-    // Success notification
-    const notification = document.createElement('div')
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50'
-    notification.textContent = 'Payment processed successfully!'
-    document.body.appendChild(notification)
-    setTimeout(() => notification.remove(), 3000)
+    // Show receipt dialog
+    showReceiptDialog.value = true
     
   } catch (error) {
     console.error('Error processing payment:', error)
@@ -302,5 +353,204 @@ const processPayment = async () => {
   } finally {
     isProcessing.value = false
   }
+}
+
+const printReceipt = () => {
+  if (!lastTransaction.value) return
+  
+  const printWindow = window.open('', '_blank')
+  const receiptDate = new Date(lastTransaction.value.timestamp).toLocaleString()
+  
+  const receiptContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Receipt</title>
+      <style>
+        body {
+          font-family: 'Courier New', monospace;
+          margin: 0;
+          padding: 20px;
+          font-size: 14px;
+          line-height: 1.4;
+          max-width: 300px;
+          margin: 0 auto;
+        }
+        .receipt {
+          border: 1px dashed #333;
+          padding: 20px;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 1px dashed #333;
+          padding-bottom: 15px;
+          margin-bottom: 15px;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: bold;
+        }
+        .header p {
+          margin: 5px 0 0 0;
+          font-size: 12px;
+        }
+        .transaction-info {
+          margin-bottom: 15px;
+          font-size: 12px;
+        }
+        .transaction-info div {
+          margin-bottom: 3px;
+        }
+        .items {
+          border-bottom: 1px dashed #333;
+          padding-bottom: 15px;
+          margin-bottom: 15px;
+        }
+        .item {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          align-items: flex-start;
+        }
+        .item-details {
+          flex: 1;
+          margin-right: 10px;
+        }
+        .item-name {
+          font-weight: bold;
+        }
+        .item-qty-price {
+          font-size: 12px;
+          color: #666;
+        }
+        .item-total {
+          font-weight: bold;
+          text-align: right;
+        }
+        .totals {
+          font-size: 16px;
+        }
+        .total-line {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 5px;
+        }
+        .grand-total {
+          font-weight: bold;
+          font-size: 18px;
+          border-top: 1px solid #333;
+          padding-top: 10px;
+          margin-top: 10px;
+        }
+        .payment-info {
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 1px dashed #333;
+          font-size: 12px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 20px;
+          padding-top: 15px;
+          border-top: 1px dashed #333;
+          font-size: 11px;
+        }
+        @media print {
+          body {
+            margin: 0;
+            padding: 10px;
+          }
+          .receipt {
+            border: none;
+            padding: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="receipt">
+        <div class="header">
+          <h1>YOUR BUSINESS NAME</h1>
+          <p>123 Business Street</p>
+          <p>City, State 12345</p>
+          <p>Phone: (555) 123-4567</p>
+        </div>
+        
+        <div class="transaction-info">
+          <div><strong>Receipt #:</strong> ${lastTransaction.value.id?.slice(-8) || 'N/A'}</div>
+          <div><strong>Date:</strong> ${receiptDate}</div>
+          <div><strong>Cashier:</strong> System</div>
+          ${lastTransaction.value.customer ? 
+            `<div><strong>Customer:</strong> ${lastTransaction.value.customer.name}</div>` : 
+            '<div><strong>Customer:</strong> Walk-in</div>'
+          }
+        </div>
+        
+        <div class="items">
+          ${lastTransaction.value.items.map(item => `
+            <div class="item">
+              <div class="item-details">
+                <div class="item-name">${item.name}</div>
+                <div class="item-qty-price">${item.quantity} x $${item.price.toFixed(2)}</div>
+              </div>
+              <div class="item-total">$${(item.price * item.quantity).toFixed(2)}</div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="totals">
+          <div class="total-line">
+            <span>Subtotal:</span>
+            <span>$${lastTransaction.value.total.toFixed(2)}</span>
+          </div>
+          <div class="total-line">
+            <span>Tax:</span>
+            <span>$0.00</span>
+          </div>
+          <div class="total-line grand-total">
+            <span>TOTAL:</span>
+            <span>$${lastTransaction.value.total.toFixed(2)}</span>
+          </div>
+        </div>
+        
+        <div class="payment-info">
+          <div><strong>Payment Method:</strong> ${lastTransaction.value.paymentMethod.charAt(0).toUpperCase() + lastTransaction.value.paymentMethod.slice(1)}</div>
+          <div><strong>Amount Paid:</strong> $${lastTransaction.value.total.toFixed(2)}</div>
+          <div><strong>Change:</strong> $0.00</div>
+        </div>
+        
+        <div class="footer">
+          <p>Thank you for your business!</p>
+          <p>Please keep this receipt for your records</p>
+          <p>---</p>
+          <p>Return Policy: 30 days with receipt</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+  
+  printWindow.document.write(receiptContent)
+  printWindow.document.close()
+  
+  printWindow.onload = () => {
+    printWindow.print()
+    printWindow.close()
+  }
+  
+  closeReceiptDialog()
+}
+
+const closeReceiptDialog = () => {
+  showReceiptDialog.value = false
+  lastTransaction.value = null
+  
+  // Success notification
+  const notification = document.createElement('div')
+  notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50'
+  notification.textContent = 'Payment processed successfully!'
+  document.body.appendChild(notification)
+  setTimeout(() => notification.remove(), 3000)
 }
 </script>

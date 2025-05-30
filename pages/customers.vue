@@ -1,8 +1,21 @@
 <template>
   <div class="pb-20 lg:pb-0">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Customer Management</h2>
-      <p class="text-gray-600">Add and manage your customers</p>
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Customer Management</h2>
+          <p class="text-gray-600">Add and manage your customers</p>
+        </div>
+        <div class="flex-shrink-0">
+          <PrintButton
+            page-type="customers"
+            :data="{ customers }"
+            button-text="Print List"
+            :disabled="!customers || customers.length === 0"
+            class="w-full sm:w-auto"
+          />
+        </div>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -23,27 +36,6 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-            <input
-              v-model="newCustomer.email"
-              type="email"
-              required
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="customer@example.com"
-            >
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input
-              v-model="newCustomer.phone"
-              type="tel"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="(555) 123-4567"
-            >
-          </div>
-          
-          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Initial Credits</label>
             <input
               v-model="newCustomer.credits"
@@ -57,7 +49,7 @@
           
           <button
             type="submit"
-            :disabled="!newCustomer.name || !newCustomer.email || isAddingCustomer"
+            :disabled="!newCustomer.name || isAddingCustomer"
             class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
           >
             <span v-if="!isAddingCustomer">Add Customer</span>
@@ -99,8 +91,6 @@
             <div class="flex justify-between items-start">
               <div class="flex-1">
                 <h4 class="font-semibold text-gray-900">{{ customer.name }}</h4>
-                <p class="text-sm text-gray-600">{{ customer.email }}</p>
-                <p v-if="customer.phone" class="text-sm text-gray-600">{{ customer.phone }}</p>
                 <p class="text-xs text-gray-400 mt-1">
                   Joined {{ formatDate(customer.createdAt) }}
                 </p>
@@ -120,33 +110,28 @@
 </template>
 
 <script setup>
+
 const { customers, addCustomer } = useFirebaseData()
 
 const isAddingCustomer = ref(false)
 const newCustomer = ref({
   name: '',
-  email: '',
-  phone: '',
   credits: 0
 })
 
 const addNewCustomer = async () => {
-  if (!newCustomer.value.name || !newCustomer.value.email || isAddingCustomer.value) return
+  if (!newCustomer.value.name || isAddingCustomer.value) return
 
   isAddingCustomer.value = true
 
   try {
     await addCustomer({
       name: newCustomer.value.name,
-      email: newCustomer.value.email,
-      phone: newCustomer.value.phone,
       credits: parseFloat(newCustomer.value.credits) || 0
     })
     
     newCustomer.value = {
       name: '',
-      email: '',
-      phone: '',
       credits: 0
     }
 

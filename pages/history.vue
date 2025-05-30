@@ -17,12 +17,19 @@
               Total Transactions: <span class="font-semibold">{{ transactions?.length || 0 }}</span>
             </div>
             <div class="text-sm text-gray-600">
-              Total Revenue: <span class="font-semibold text-green-600">${{ totalRevenue.toFixed(2) }}</span>
+              Total Revenue: <span class="font-semibold text-green-600">₵{{ totalRevenue.toFixed(2) }}</span>
             </div>
           </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-xs text-gray-500">Auto-refresh</span>
-            <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          <div class="flex items-center space-x-4">
+            <PrintButton
+              page-type="transactions"
+              :data="{ transactions, totalRevenue }"
+              button-text="Print History"
+            />
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-gray-500">Auto-refresh</span>
+              <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -67,14 +74,14 @@
                 <div class="space-y-1">
                   <div v-for="item in transaction.items" :key="item.id" class="text-sm text-gray-700 flex justify-between">
                     <span>{{ item.quantity }}x {{ item.name }}</span>
-                    <span class="font-medium">${{ (item.price * item.quantity).toFixed(2) }}</span>
+                    <span class="font-medium">₵{{ (item.price * item.quantity).toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
               
               <div class="text-right">
                 <div class="text-xl font-bold text-green-600">
-                  ${{ transaction.total?.toFixed(2) || '0.00' }}
+                  ₵{{ transaction.total?.toFixed(2) || '0.00' }}
                 </div>
                 <div class="text-xs text-gray-500">
                   ID: {{ transaction.id?.slice(-6) }}
@@ -89,6 +96,7 @@
 </template>
 
 <script setup>
+
 const { transactions } = useFirebaseData()
 
 const totalRevenue = computed(() => {

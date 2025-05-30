@@ -21,8 +21,6 @@ export interface Service {
 export interface Customer {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
   credits: number;
   createdAt?: any;
   updatedAt?: any;
@@ -43,7 +41,6 @@ export interface Transaction {
   customer?: {
     id: string;
     name: string;
-    email: string;
   } | null;
   timestamp?: any;
 }
@@ -55,8 +52,6 @@ export interface ServiceInput {
 
 export interface CustomerInput {
   name: string;
-  email: string;
-  phone?: string;
   credits?: number;
 }
 

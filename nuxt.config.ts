@@ -15,11 +15,11 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
-  
+
   typescript: {
     strict: true
   },
-  
+
   vuefire: {
     config: {
       apiKey: process.env.FIREBASE_API_KEY,
