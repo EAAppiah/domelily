@@ -28,9 +28,9 @@
           </div>
         </div>
         
-        <!-- Searchable Service Dropdown -->
+        <!-- Service Search -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Select Service</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search Services</label>
           <div class="relative">
             <input
               v-model="serviceSearch"
@@ -44,7 +44,7 @@
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
             </svg>
             
-            <!-- Dropdown List -->
+            <!-- Dropdown -->
             <div
               v-if="showServiceDropdown && filteredServices.length > 0"
               class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
@@ -59,33 +59,11 @@
                 <span class="text-green-600 font-semibold">{{ formatCurrency(service.price) }}</span>
               </div>
             </div>
-            
-            <!-- No Results -->
-            <div
-              v-if="showServiceDropdown && serviceSearch && filteredServices.length === 0"
-              class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500"
-            >
-              <p>No services found matching "{{ serviceSearch }}"</p>
-              <button
-                @click="showAddServiceModal = true; showServiceDropdown = false"
-                class="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                Add new service
-              </button>
-            </div>
           </div>
         </div>
 
-        <!-- Loading State for Services -->
-        <div v-if="servicesLoading" class="space-y-2 max-h-80">
-          <div v-for="n in 4" :key="n" class="flex justify-between items-center p-4 border border-gray-200 rounded-lg animate-pulse">
-            <div class="h-4 bg-gray-300 rounded w-1/2"></div>
-            <div class="h-4 bg-gray-300 rounded w-16"></div>
-          </div>
-        </div>
-
-        <!-- Available Services (Grid View) -->
-        <div v-else class="space-y-2 max-h-80 overflow-y-auto">
+        <!-- Services Grid -->
+        <div class="space-y-2 max-h-80 overflow-y-auto">
           <div v-if="!services || services.length === 0" class="text-center py-8 text-gray-500">
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
@@ -122,12 +100,11 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
           <select
             v-model="selectedCustomer"
-            :disabled="processPaymentLoading.isLoading.value"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
           >
             <option value="">Walk-in Customer</option>
             <option v-for="customer in customers" :key="customer.id" :value="customer">
-              {{ customer.name }} (Credits: {{ formatCurrency(customer.credits) }})
+              {{ customer.name }} (Credits: {{ formatCurrency(customer.credits || 0) }})
             </option>
           </select>
         </div>
@@ -153,14 +130,12 @@
                 <div class="flex items-center space-x-1 bg-white rounded-md border">
                   <button 
                     @click="updateQuantity(index, -1)" 
-                    :disabled="processPaymentLoading.isLoading.value"
-                    class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-l-md transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-l-md transition-colors"
                   >-</button>
                   <span class="w-10 text-center text-sm font-medium">{{ item.quantity }}</span>
                   <button 
                     @click="updateQuantity(index, 1)" 
-                    :disabled="processPaymentLoading.isLoading.value"
-                    class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-r-md transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-r-md transition-colors"
                   >+</button>
                 </div>
               </div>
@@ -168,8 +143,7 @@
                 <span class="font-semibold">{{ formatCurrency(item.price * item.quantity) }}</span>
                 <button 
                   @click="removeFromCart(index)" 
-                  :disabled="processPaymentLoading.isLoading.value"
-                  class="text-red-500 hover:text-red-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  class="text-red-500 hover:text-red-700 transition-colors"
                 >
                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -193,95 +167,49 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
           <select
             v-model="paymentMethod"
-            :disabled="processPaymentLoading.isLoading.value"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
           >
             <option value="cash">Cash</option>
             <option value="card">Card</option>
             <option value="credits" :disabled="!selectedCustomer">Customer Credits</option>
-            <option value="mixed">Mixed Payment</option>
           </select>
         </div>
 
-        <!-- Credits Management -->
+        <!-- Credits Display -->
         <div v-if="selectedCustomer" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-sm font-medium text-blue-800">Customer Credits:</span>
-            <span class="font-bold text-blue-900">{{ formatCurrency(selectedCustomer.credits) }}</span>
-          </div>
-          <div class="flex space-x-2">
-            <input
-              v-model="creditsToAdd"
-              type="number"
-              step="0.01"
-              placeholder="Add credits"
-              :disabled="addCreditsLoading.isLoading.value"
-              class="flex-1 p-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-            <button
-              @click="addCredits"
-              :disabled="!creditsToAdd || creditsToAdd <= 0 || addCreditsLoading.isLoading.value"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              <span v-if="!addCreditsLoading.isLoading.value">Add</span>
-              <svg v-else class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </button>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-blue-800">Available Credits:</span>
+            <span class="font-bold text-blue-900">{{ formatCurrency(selectedCustomer.credits || 0) }}</span>
           </div>
         </div>
 
         <!-- Checkout Button -->
         <button
           @click="processPayment"
-          :disabled="cart.length === 0 || processPaymentLoading.isLoading.value"
+          :disabled="cart.length === 0 || isProcessing"
           class="w-full bg-green-600 text-white px-4 py-4 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-bold text-lg"
         >
-          <span v-if="!processPaymentLoading.isLoading.value">Process Payment</span>
+          <span v-if="!isProcessing">Process Payment</span>
           <span v-else class="flex items-center justify-center">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Processing Payment...
+            Processing...
           </span>
         </button>
 
-        <!-- Print Receipt Buttons (appears after successful payment) -->
+        <!-- Receipt Actions -->
         <div v-if="lastTransaction" class="mt-3 space-y-2">
-          <!-- Desktop/Web Print Button -->
-          <button
-            @click="printReceipt"
-            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
-            </svg>
-            <span>Print Receipt</span>
-          </button>
-          
-          <!-- Mobile Share/Save Button -->
-          <button
-            @click="shareReceipt"
-            class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center space-x-2"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
-            </svg>
-            <span>Share Receipt</span>
-          </button>
-          
-          <!-- View Receipt Button -->
           <button
             @click="showReceiptModal = true"
-            class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center space-x-2"
+            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
               <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
             </svg>
-            <span>View Receipt</span>
+            <span>Preview & Print Receipt</span>
           </button>
         </div>
       </div>
@@ -293,16 +221,10 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       @click="closeModal"
     >
-      <div
-        class="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
-        @click.stop
-      >
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">Add New Service</h3>
-          <button
-            @click="closeModal"
-            class="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -317,8 +239,7 @@
                 v-model="newService.name"
                 type="text"
                 placeholder="Enter service name"
-                :disabled="addServiceLoading.isLoading.value"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 required
               >
             </div>
@@ -331,8 +252,7 @@
                 step="0.01"
                 min="0"
                 placeholder="Enter price"
-                :disabled="addServiceLoading.isLoading.value"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 required
               >
             </div>
@@ -342,104 +262,125 @@
             <button
               type="button"
               @click="closeModal"
-              :disabled="addServiceLoading.isLoading.value"
-              class="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+              class="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              :disabled="!newService.name || !newService.price || addServiceLoading.isLoading.value"
+              :disabled="!newService.name || !newService.price"
               class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              <span v-if="!addServiceLoading.isLoading.value">Add Service</span>
-              <span v-else class="flex items-center justify-center">
-                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Adding...
-              </span>
+              Add Service
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Receipt Modal -->
+    <!-- Enhanced Receipt Preview Modal -->
     <div
       v-if="showReceiptModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       @click="showReceiptModal = false"
     >
-      <div
-        class="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto"
-        @click.stop
-      >
+      <div class="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-hidden" @click.stop>
         <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">Receipt</h3>
-          <button
-            @click="showReceiptModal = false"
-            class="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <h3 class="text-lg font-semibold text-gray-900">Receipt Preview</h3>
+          <button @click="showReceiptModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
           </button>
         </div>
         
-        <div class="p-6" id="receipt-content">
-          <div class="text-center mb-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-1">Domemily Enterprise</h2>
-            <p class="text-sm text-gray-600">Receipt</p>
-            <p class="text-sm text-gray-600">{{ formatDate(lastTransaction?.timestamp) }}</p>
-          </div>
-          
-          <div class="border-t border-b border-dashed border-gray-300 py-4 mb-4">
-            <div v-for="item in lastTransaction?.items" :key="item.id" class="flex justify-between items-center py-2">
-              <div>
-                <span class="font-medium">{{ item.name }}</span>
-                <span v-if="item.quantity > 1" class="text-sm text-gray-600 ml-1">x{{ item.quantity }}</span>
+        <!-- Receipt Preview Content -->
+        <div class="overflow-y-auto max-h-[60vh]">
+          <div class="p-6 bg-gray-50 m-4 rounded-lg border-2 border-dashed border-gray-300" id="receipt-content">
+            <div class="bg-white p-6 rounded shadow-sm text-center font-mono" style="font-family: 'Courier New', monospace;">
+              <div class="mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-1">DOMEMILY ENTERPRISE</h2>
+                <p class="text-sm text-gray-600">Receipt</p>
+                <p class="text-sm text-gray-600">{{ formatDate(lastTransaction?.timestamp) }}</p>
               </div>
-              <span class="font-semibold">{{ formatCurrency(item.price * item.quantity) }}</span>
+              
+              <div class="border-t border-b border-dashed border-gray-400 py-4 mb-4 text-left">
+                <div v-for="item in lastTransaction?.items" :key="item.id" class="flex justify-between items-center py-1 text-sm">
+                  <div>
+                    <span class="font-medium">{{ item.name }}</span>
+                    <span v-if="item.quantity > 1" class="text-gray-600 ml-1">x{{ item.quantity }}</span>
+                  </div>
+                  <span class="font-semibold">{{ formatCurrency(item.price * item.quantity) }}</span>
+                </div>
+              </div>
+              
+              <div class="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-400 pb-4 mb-4">
+                <span>TOTAL:</span>
+                <span class="text-green-600">{{ formatCurrency(lastTransaction?.total) }}</span>
+              </div>
+              
+              <div class="text-sm text-gray-600 mb-6 text-left">
+                <p class="mb-1">Payment: {{ lastTransaction?.paymentMethod?.toUpperCase() }}</p>
+                <p v-if="lastTransaction?.customer" class="mb-1">Customer: {{ lastTransaction.customer.name }}</p>
+              </div>
+              
+              <div class="text-center text-sm text-gray-600">
+                <p>Thank you for your business!</p>
+              </div>
             </div>
           </div>
           
-          <div class="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 pb-4 mb-4">
-            <span>Total:</span>
-            <span class="text-green-600">{{ formatCurrency(lastTransaction?.total) }}</span>
-          </div>
-          
-          <div class="text-sm text-gray-600 mb-6">
-            <p class="mb-1">Payment: {{ lastTransaction?.paymentMethod }}</p>
-            <p v-if="lastTransaction?.customer" class="mb-1">Customer: {{ lastTransaction.customer.name }}</p>
-          </div>
-          
-          <div class="text-center text-sm text-gray-600">
-            <p>Thank you for your business!</p>
+          <!-- Preview Notice -->
+          <div class="px-6 pb-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div class="flex items-start space-x-2">
+                <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div class="text-sm text-blue-700">
+                  <p class="font-medium mb-1">This is how your receipt will look when printed</p>
+                  <p class="text-blue-600">The actual printout may vary slightly depending on your printer settings.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div class="sticky bottom-0 bg-white border-t p-4 space-y-2">
+        <!-- Action Buttons -->
+        <div class="sticky bottom-0 bg-white border-t p-4 space-y-3">
+          <!-- Print Button -->
           <button
-            @click="downloadReceiptImage"
+            @click="printReceipt"
+            class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+            </svg>
+            <span>Print Receipt</span>
+          </button>
+          
+          <!-- Share/Save Button -->
+          <button
+            @click="shareReceipt"
             class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
             </svg>
-            <span>Download as Image</span>
+            <span>Share/Copy Receipt</span>
           </button>
           
+          <!-- Email Option (if applicable) -->
           <button
-            @click="copyReceiptText"
-            class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center space-x-2"
+            v-if="lastTransaction?.customer?.email"
+            @click="emailReceipt"
+            class="w-full bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center space-x-2"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
             </svg>
-            <span>Copy Text</span>
+            <span>Email to Customer</span>
           </button>
         </div>
       </div>
@@ -448,29 +389,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 
 const { services, customers, addService, addTransaction, updateCustomerCredits } = useFirebaseData()
-const { showSuccess, showError, showInfo } = useNotifications()
-const { createLoadingState } = useLoadingState()
+const { showSuccess, showError } = useNotifications()
 const { formatCurrency } = useFormatting()
 
-// Loading states
-const addServiceLoading = createLoadingState()
-const processPaymentLoading = createLoadingState()
-const addCreditsLoading = createLoadingState()
-const servicesLoading = ref(false)
-
-// Modal and dropdown states
+// State
 const showAddServiceModal = ref(false)
 const showServiceDropdown = ref(false)
 const showReceiptModal = ref(false)
 const serviceSearch = ref('')
+const isProcessing = ref(false)
 
 const cart = ref([])
 const selectedCustomer = ref('')
 const paymentMethod = ref('cash')
-const creditsToAdd = ref('')
 const lastTransaction = ref(null)
 
 const newService = ref({
@@ -478,7 +412,7 @@ const newService = ref({
   price: ''
 })
 
-// Computed properties
+// Computed
 const total = computed(() => {
   return cart.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 })
@@ -494,436 +428,10 @@ const filteredServices = computed(() => {
   )
 })
 
-// Helper function to format date
+// Helper functions
 const formatDate = (timestamp) => {
   if (!timestamp) return ''
   return new Date(timestamp).toLocaleString()
-}
-
-// Enhanced printing functions for mobile compatibility
-const printReceipt = async () => {
-  // Detect if on mobile
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  
-  if (isMobile) {
-    // On mobile, printing is often not supported or blocked
-    // Show user-friendly options instead
-    try {
-      const result = await showMobilePrintDialog()
-      if (result === 'image') {
-        await downloadReceiptImage()
-      } else if (result === 'share') {
-        await shareReceipt()
-      } else if (result === 'copy') {
-        await copyReceiptText()
-      }
-    } catch (error) {
-      // Default to image download as most reliable option
-      showInfo('Printing is not supported on this device. Saving as image instead...')
-      await downloadReceiptImage()
-    }
-  } else {
-    // Desktop printing with better error handling
-    attemptPrint()
-  }
-}
-
-const showMobilePrintDialog = () => {
-  return new Promise((resolve) => {
-    // You can implement a proper modal here, but for quick fix:
-    const message = `Printing is limited on mobile devices. 
-Please choose an option:
-
-1. Save as Image (Recommended)
-2. Share Receipt
-3. Copy as Text
-4. Cancel`
-
-    const choice = prompt(message, '1')
-    
-    switch(choice) {
-      case '1':
-        resolve('image')
-        break
-      case '2':
-        resolve('share')
-        break
-      case '3':
-        resolve('copy')
-        break
-      default:
-        resolve('cancel')
-    }
-  })
-}
-
-const attemptPrint = () => {
-  try {
-    // Method 1: Try using an iframe (more reliable)
-    const iframe = document.createElement('iframe')
-    iframe.style.position = 'absolute'
-    iframe.style.width = '0'
-    iframe.style.height = '0'
-    iframe.style.border = 'none'
-    iframe.style.left = '-9999px'
-    
-    document.body.appendChild(iframe)
-    
-    const receiptHTML = generateReceiptHTML()
-    
-    // Write content to iframe
-    const doc = iframe.contentDocument || iframe.contentWindow.document
-    doc.open()
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt - Domemily Enterprise</title>
-        <style>
-          body { 
-            font-family: 'Courier New', monospace; 
-            margin: 0; 
-            padding: 20px; 
-            font-size: 12px; 
-            line-height: 1.4;
-            max-width: 320px;
-          }
-          .receipt-header { text-align: center; margin-bottom: 16px; }
-          .receipt-title { font-weight: bold; font-size: 16px; margin: 0 0 4px 0; }
-          .receipt-subtitle { font-size: 10px; color: #666; margin: 0; }
-          .receipt-items { 
-            border-top: 1px dashed #333; 
-            border-bottom: 1px dashed #333; 
-            padding: 8px 0; 
-            margin-bottom: 8px; 
-          }
-          .receipt-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 2px 0; 
-          }
-          .receipt-total { 
-            display: flex; 
-            justify-content: space-between; 
-            font-weight: bold; 
-            border-bottom: 1px dashed #333; 
-            padding-bottom: 8px; 
-            margin-bottom: 8px; 
-          }
-          .receipt-info { font-size: 10px; color: #666; margin-bottom: 8px; }
-          .receipt-info p { margin: 2px 0; }
-          .receipt-footer { text-align: center; font-size: 10px; color: #666; margin-top: 16px; }
-          @media print {
-            body { padding: 0; }
-          }
-        </style>
-      </head>
-      <body>${receiptHTML}</body>
-      </html>
-    `)
-    doc.close()
-    
-    // Wait for content to load
-    iframe.onload = () => {
-      try {
-        iframe.contentWindow.focus()
-        iframe.contentWindow.print()
-        
-        // Remove iframe after printing
-        setTimeout(() => {
-          document.body.removeChild(iframe)
-        }, 1000)
-      } catch (error) {
-        console.error('Iframe print failed:', error)
-        fallbackPrintMethod()
-      }
-    }
-    
-    // Set a timeout in case onload doesn't fire
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        try {
-          iframe.contentWindow.print()
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe)
-            }
-          }, 1000)
-        } catch (error) {
-          console.error('Timeout print failed:', error)
-          if (document.body.contains(iframe)) {
-            document.body.removeChild(iframe)
-          }
-          fallbackPrintMethod()
-        }
-      }
-    }, 500)
-    
-  } catch (error) {
-    console.error('Print setup failed:', error)
-    fallbackPrintMethod()
-  }
-}
-
-// Fallback method using window.print()
-const fallbackPrintMethod = () => {
-  try {
-    // Create a print-specific div
-    const printDiv = document.createElement('div')
-    printDiv.id = 'print-receipt-content'
-    printDiv.style.position = 'fixed'
-    printDiv.style.left = '-9999px'
-    printDiv.style.top = '0'
-    printDiv.innerHTML = generateReceiptHTML()
-    
-    document.body.appendChild(printDiv)
-    
-    // Add print-specific CSS
-    const style = document.createElement('style')
-    style.id = 'print-receipt-style'
-    style.textContent = `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        #print-receipt-content, #print-receipt-content * {
-          visibility: visible;
-        }
-        #print-receipt-content {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 80mm;
-          font-family: 'Courier New', monospace;
-          font-size: 12px;
-        }
-      }
-    `
-    document.head.appendChild(style)
-    
-    // Attempt to print
-    window.print()
-    
-    // Cleanup
-    setTimeout(() => {
-      document.body.removeChild(printDiv)
-      document.head.removeChild(style)
-    }, 1000)
-    
-  } catch (error) {
-    console.error('Fallback print failed:', error)
-    showError('Printing failed. Please try saving as an image or copying the text.')
-  }
-}
-
-const shareReceipt = async () => {
-  const receiptText = generateReceiptText()
-  
-  // Check if Web Share API is supported (mainly on mobile)
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Receipt - Domemily Enterprise',
-        text: receiptText,
-      })
-      showSuccess('Receipt shared successfully!')
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Error sharing:', error)
-        fallbackShare(receiptText)
-      }
-    }
-  } else {
-    fallbackShare(receiptText)
-  }
-}
-
-const downloadReceiptImage = async () => {
-  try {
-    // Show loading state
-    showInfo('Generating receipt image...')
-    
-    // Check if html2canvas is available
-    if (typeof html2canvas === 'undefined') {
-      // Try to load it dynamically
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
-      document.head.appendChild(script)
-      
-      await new Promise((resolve, reject) => {
-        script.onload = resolve
-        script.onerror = reject
-        setTimeout(reject, 5000) // 5 second timeout
-      })
-    }
-    
-    const receiptElement = document.getElementById('receipt-content')
-    
-    if (!receiptElement) {
-      throw new Error('Receipt content not found')
-    }
-    
-    // Generate canvas with better options
-    const canvas = await html2canvas(receiptElement, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      width: receiptElement.scrollWidth,
-      height: receiptElement.scrollHeight
-    })
-    
-    // Convert to blob
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        throw new Error('Failed to generate image')
-      }
-      
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `receipt-${Date.now()}.png`
-      
-      // For mobile compatibility
-      link.style.display = 'none'
-      document.body.appendChild(link)
-      link.click()
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }, 100)
-      
-      showSuccess('Receipt saved as image!')
-    }, 'image/png', 1.0)
-    
-  } catch (error) {
-    console.error('Error generating image:', error)
-    showError('Could not generate image. Please try copying the text instead.')
-    
-    // Auto-fallback to text copy
-    setTimeout(() => {
-      copyReceiptText()
-    }, 1000)
-  }
-}
-
-const fallbackShare = (text) => {
-  // Fallback for browsers that don't support Web Share API
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      showSuccess('Receipt copied to clipboard!')
-    }).catch(() => {
-      showError('Could not copy receipt. Please try again.')
-    })
-  } else {
-    // Very old browsers fallback
-    const textArea = document.createElement('textarea')
-    textArea.value = text
-    document.body.appendChild(textArea)
-    textArea.select()
-    try {
-      document.execCommand('copy')
-      showSuccess('Receipt copied to clipboard!')
-    } catch (err) {
-      showError('Could not copy receipt. Please try again.')
-    }
-    document.body.removeChild(textArea)
-  }
-}
-
-const copyReceiptText = async () => {
-  const receiptText = generateReceiptText()
-  
-  if (navigator.clipboard) {
-    try {
-      await navigator.clipboard.writeText(receiptText)
-      showSuccess('Receipt text copied to clipboard!')
-    } catch (error) {
-      console.error('Error copying text:', error)
-      showError('Could not copy text. Please try again.')
-    }
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea')
-    textArea.value = receiptText
-    document.body.appendChild(textArea)
-    textArea.select()
-    try {
-      document.execCommand('copy')
-      showSuccess('Receipt text copied to clipboard!')
-    } catch (err) {
-      showError('Could not copy text. Please try again.')
-    }
-    document.body.removeChild(textArea)
-  }
-}
-
-const generateReceiptHTML = () => {
-  if (!lastTransaction.value) return ''
-  
-  const items = lastTransaction.value.items.map(item => `
-    <div class="receipt-item">
-      <div>
-        <span>${item.name}</span>
-        ${item.quantity > 1 ? `<span style="font-size: 10px; color: #666;"> x${item.quantity}</span>` : ''}
-      </div>
-      <span>${formatCurrency(item.price * item.quantity)}</span>
-    </div>
-  `).join('')
-  
-  return `
-    <div class="receipt-header">
-      <h2 class="receipt-title">Domemily Enterprise</h2>
-      <p class="receipt-subtitle">Receipt</p>
-      <p class="receipt-subtitle">${formatDate(lastTransaction.value.timestamp)}</p>
-    </div>
-    
-    <div class="receipt-items">
-      ${items}
-    </div>
-    
-    <div class="receipt-total">
-      <span>Total:</span>
-      <span>${formatCurrency(lastTransaction.value.total)}</span>
-    </div>
-    
-    <div class="receipt-info">
-      <p>Payment: ${lastTransaction.value.paymentMethod}</p>
-      ${lastTransaction.value.customer ? `<p>Customer: ${lastTransaction.value.customer.name}</p>` : ''}
-    </div>
-    
-    <div class="receipt-footer">
-      <p>Thank you for your business!</p>
-    </div>
-  `
-}
-
-const generateReceiptText = () => {
-  if (!lastTransaction.value) return ''
-  
-  const items = lastTransaction.value.items.map(item => 
-    `${item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''} - ${formatCurrency(item.price * item.quantity)}`
-  ).join('\n')
-  
-  return `
-DOMEMILY ENTERPRISE
-Receipt
-${formatDate(lastTransaction.value.timestamp)}
-
-${'-'.repeat(32)}
-${items}
-${'-'.repeat(32)}
-
-Total: ${formatCurrency(lastTransaction.value.total)}
-
-Payment: ${lastTransaction.value.paymentMethod}
-${lastTransaction.value.customer ? `Customer: ${lastTransaction.value.customer.name}` : ''}
-
-Thank you for your business!
-  `.trim()
 }
 
 // Modal functions
@@ -932,7 +440,7 @@ const closeModal = () => {
   newService.value = { name: '', price: '' }
 }
 
-// Service selection functions
+// Service functions
 const selectService = (service) => {
   addToCart(service)
   serviceSearch.value = ''
@@ -940,13 +448,11 @@ const selectService = (service) => {
 }
 
 const handleServiceBlur = () => {
-  // Delay hiding dropdown to allow click events to register
   setTimeout(() => {
     showServiceDropdown.value = false
   }, 150)
 }
 
-// Existing functions
 const addNewService = async () => {
   if (!newService.value.name || !newService.value.price) {
     showError('Please enter service name and price')
@@ -954,20 +460,18 @@ const addNewService = async () => {
   }
 
   try {
-    await addServiceLoading.withLoading(async () => {
-      await addService({
-        name: newService.value.name,
-        price: parseFloat(newService.value.price)
-      })
-      closeModal()
-      showSuccess('Service added successfully!')
+    await addService({
+      name: newService.value.name,
+      price: parseFloat(newService.value.price)
     })
+    closeModal()
+    showSuccess('Service added successfully!')
   } catch (error) {
-    console.error('Error adding service:', error)
     showError('Failed to add service. Please try again.')
   }
 }
 
+// Cart functions
 const addToCart = (service) => {
   const existingItem = cart.value.find(item => item.id === service.id)
   if (existingItem) {
@@ -988,81 +492,264 @@ const updateQuantity = (index, change) => {
 const removeFromCart = (index) => {
   const item = cart.value[index]
   cart.value.splice(index, 1)
-  showInfo(`${item.name} removed from cart`)
+  showSuccess(`${item.name} removed from cart`)
 }
 
-const addCredits = async () => {
-  if (!selectedCustomer.value || !creditsToAdd.value || creditsToAdd.value <= 0) {
-    showError('Please enter a valid credit amount')
-    return
-  }
-
-  try {
-    await addCreditsLoading.withLoading(async () => {
-      const newCreditAmount = (selectedCustomer.value.credits || 0) + parseFloat(creditsToAdd.value)
-      await updateCustomerCredits(selectedCustomer.value.id, newCreditAmount)
-      creditsToAdd.value = ''
-      showSuccess('Credits added successfully!')
-    })
-  } catch (error) {
-    console.error('Error adding credits:', error)
-    showError('Failed to add credits. Please try again.')
-  }
-}
-
+// Payment processing
 const processPayment = async () => {
   if (cart.value.length === 0) {
     showError('Cart is empty')
     return
   }
 
+  isProcessing.value = true
+
   try {
-    await processPaymentLoading.withLoading(async () => {
-      // Validate credits payment
-      if (paymentMethod.value === 'credits' && selectedCustomer.value) {
-        const customerCredits = selectedCustomer.value.credits || 0
-        if (customerCredits < total.value) {
-          showError('Insufficient credits!')
-          return
-        }
-        // Deduct credits
-        await updateCustomerCredits(selectedCustomer.value.id, customerCredits - total.value)
+    // Validate credits payment
+    if (paymentMethod.value === 'credits' && selectedCustomer.value) {
+      const customerCredits = selectedCustomer.value.credits || 0
+      if (customerCredits < total.value) {
+        showError('Insufficient credits!')
+        return
       }
+      // Deduct credits
+      await updateCustomerCredits(selectedCustomer.value.id, customerCredits - total.value)
+    }
 
-      const transaction = {
-        items: cart.value,
-        total: total.value,
-        paymentMethod: paymentMethod.value,
-        customer: selectedCustomer.value ? {
-          id: selectedCustomer.value.id,
-          name: selectedCustomer.value.name,
-        } : null,
-        timestamp: Date.now()
-      }
+    const transaction = {
+      items: cart.value,
+      total: total.value,
+      paymentMethod: paymentMethod.value,
+      customer: selectedCustomer.value ? {
+        id: selectedCustomer.value.id,
+        name: selectedCustomer.value.name,
+      } : null,
+      timestamp: Date.now()
+    }
 
-      await addTransaction(transaction)
-      
-      // Store last transaction for printing
-      lastTransaction.value = transaction
-      
-      // Reset form
-      cart.value = []
-      selectedCustomer.value = ''
-      paymentMethod.value = 'cash'
-      
-      showSuccess('Payment processed successfully!')
-    })
+    await addTransaction(transaction)
+    
+    // Store last transaction for printing
+    lastTransaction.value = transaction
+    
+    // Reset form
+    cart.value = []
+    selectedCustomer.value = ''
+    paymentMethod.value = 'cash'
+    
+    showSuccess('Payment processed successfully!')
+    
   } catch (error) {
-    console.error('Error processing payment:', error)
     showError('Failed to process payment. Please try again.')
+  } finally {
+    isProcessing.value = false
   }
 }
 
-// Simulate loading for demonstration
-onMounted(() => {
-  servicesLoading.value = true
+// Receipt functions - enhanced with preview
+const printReceipt = () => {
+  // Close the modal first
+  showReceiptModal.value = false
+  
+  // Small delay to allow modal to close, then proceed directly to print
   setTimeout(() => {
-    servicesLoading.value = false
-  }, 800)
-})
+    createPrintWindow()
+  }, 300)
+}
+
+const emailReceipt = async () => {
+  if (!lastTransaction.value?.customer?.email) {
+    showError('No customer email available')
+    return
+  }
+  
+  const receiptText = generateReceiptText()
+  const subject = encodeURIComponent('Receipt from Domemily Enterprise')
+  const body = encodeURIComponent(receiptText)
+  
+  // Try to open email client
+  const emailUrl = `mailto:${lastTransaction.value.customer.email}?subject=${subject}&body=${body}`
+  
+  try {
+    window.open(emailUrl, '_blank')
+    showSuccess('Email client opened')
+  } catch (error) {
+    showError('Could not open email client')
+  }
+}
+
+const createPrintWindow = () => {
+  const receiptHTML = generateReceiptHTML()
+  
+  try {
+    // Try to create print window
+    const printWindow = window.open('', '_blank', 'width=300,height=600')
+    
+    if (!printWindow) {
+      // If popup is blocked, show fallback message
+      showError('Please enable popups to print receipts, or use the Share option instead.')
+      return
+    }
+    
+    // Build HTML content with proper escaping
+    const htmlContent = '<!DOCTYPE html>' +
+      '<html>' +
+      '<head>' +
+      '<title>Receipt</title>' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+      '<style>' +
+      'body { font-family: "Courier New", monospace; font-size: 12px; margin: 0; padding: 20px; text-align: center; max-width: 300px; }' +
+      '.receipt-item { display: flex; justify-content: space-between; margin: 4px 0; }' +
+      '.dashed { border-top: 1px dashed #000; margin: 8px 0; padding-top: 8px; }' +
+      '.total { font-weight: bold; font-size: 16px; }' +
+      '@media print { body { padding: 0; margin: 0; } @page { margin: 10mm; size: 80mm auto; } }' +
+      '</style>' +
+      '</head>' +
+      '<body>' +
+      receiptHTML +
+      '<script>' +
+      'window.onload = function() {' +
+      '  setTimeout(function() {' +
+      '    window.print();' +
+      '    setTimeout(function() {' +
+      '      window.close();' +
+      '    }, 1000);' +
+      '  }, 500);' +
+      '};' +
+      '</' + 'script>' +
+      '</body>' +
+      '</html>'
+    
+    printWindow.document.write(htmlContent)
+    printWindow.document.close()
+    showSuccess('Sending to printer...')
+    
+  } catch (error) {
+    console.error('Print failed:', error)
+    showError('Printing failed. Please try using the Share option instead.')
+  }
+}
+
+const shareReceipt = async () => {
+  const receiptText = generateReceiptText()
+  
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Receipt - Domemily Enterprise',
+        text: receiptText,
+      })
+      showSuccess('Receipt shared successfully!')
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        copyToClipboard(receiptText)
+      }
+    }
+  } else {
+    copyToClipboard(receiptText)
+  }
+}
+
+const copyToClipboard = async (text) => {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text)
+      showSuccess('Receipt copied to clipboard!')
+    } catch (error) {
+      fallbackCopy(text)
+    }
+  } else {
+    fallbackCopy(text)
+  }
+}
+
+const fallbackCopy = (text) => {
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  textArea.style.position = 'fixed'
+  textArea.style.left = '-999999px'
+  textArea.style.top = '-999999px'
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  
+  try {
+    document.execCommand('copy')
+    showSuccess('Receipt copied to clipboard!')
+  } catch (err) {
+    showError('Could not copy receipt')
+  }
+  
+  document.body.removeChild(textArea)
+}
+
+const generateReceiptHTML = () => {
+  if (!lastTransaction.value) return ''
+  
+  const items = lastTransaction.value.items.map(item => {
+    const quantityText = item.quantity > 1 ? ' x' + item.quantity : ''
+    return `<div class="receipt-item">
+      <span>${item.name}${quantityText}</span>
+      <span>${formatCurrency(item.price * item.quantity)}</span>
+    </div>`
+  }).join('')
+  
+  const customerInfo = lastTransaction.value.customer ? 
+    `<p style="margin: 2px 0;">Customer: ${lastTransaction.value.customer.name}</p>` : ''
+  
+  return `<div style="text-align: center;">
+    <h2 style="margin: 0 0 8px 0; font-size: 18px;">DOMEMILY ENTERPRISE</h2>
+    <p style="margin: 0 0 4px 0; font-size: 10px;">Receipt</p>
+    <p style="margin: 0 0 16px 0; font-size: 10px;">${formatDate(lastTransaction.value.timestamp)}</p>
+    <div class="dashed" style="text-align: left;">${items}</div>
+    <div class="dashed total">
+      <div class="receipt-item">
+        <span>TOTAL:</span>
+        <span>${formatCurrency(lastTransaction.value.total)}</span>
+      </div>
+    </div>
+    <div style="text-align: left; font-size: 10px; margin: 8px 0;">
+      <p style="margin: 2px 0;">Payment: ${lastTransaction.value.paymentMethod.toUpperCase()}</p>
+      ${customerInfo}
+    </div>
+    <div style="text-align: center; margin-top: 16px; font-size: 10px;">
+      <p style="margin: 0;">Thank you for your business!</p>
+    </div>
+  </div>`
+}
+
+const generateReceiptText = () => {
+  if (!lastTransaction.value) return ''
+  
+  const items = lastTransaction.value.items.map(item => {
+    const quantityText = item.quantity > 1 ? ' x' + item.quantity : ''
+    return item.name + quantityText + ' - ' + formatCurrency(item.price * item.quantity)
+  }).join('\n')
+  
+  const customerInfo = lastTransaction.value.customer ? 
+    'Customer: ' + lastTransaction.value.customer.name : ''
+  
+  const receiptLines = [
+    'DOMEMILY ENTERPRISE',
+    'Receipt',
+    formatDate(lastTransaction.value.timestamp),
+    '',
+    '-'.repeat(32),
+    items,
+    '-'.repeat(32),
+    '',
+    'TOTAL: ' + formatCurrency(lastTransaction.value.total),
+    '',
+    'Payment: ' + lastTransaction.value.paymentMethod.toUpperCase()
+  ]
+  
+  if (customerInfo) {
+    receiptLines.push(customerInfo)
+  }
+  
+  receiptLines.push('')
+  receiptLines.push('Thank you for your business!')
+  
+  return receiptLines.join('\n').trim()
+}
 </script>
