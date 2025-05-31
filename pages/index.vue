@@ -501,67 +501,219 @@ const formatDate = (timestamp) => {
 }
 
 // Enhanced printing functions for mobile compatibility
-const printReceipt = () => {
-  // Create a new window for printing (works better on desktop)
-  const printWindow = window.open('', '_blank', 'width=400,height=600')
+const printReceipt = async () => {
+  // Detect if on mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   
-  const receiptHTML = generateReceiptHTML()
-  
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Receipt - Domemily Enterprise</title>
-      <style>
-        body { 
-          font-family: 'Courier New', monospace; 
-          margin: 0; 
-          padding: 20px; 
-          font-size: 12px; 
-          line-height: 1.4;
-          max-width: 320px;
+  if (isMobile) {
+    // On mobile, printing is often not supported or blocked
+    // Show user-friendly options instead
+    try {
+      const result = await showMobilePrintDialog()
+      if (result === 'image') {
+        await downloadReceiptImage()
+      } else if (result === 'share') {
+        await shareReceipt()
+      } else if (result === 'copy') {
+        await copyReceiptText()
+      }
+    } catch (error) {
+      // Default to image download as most reliable option
+      showInfo('Printing is not supported on this device. Saving as image instead...')
+      await downloadReceiptImage()
+    }
+  } else {
+    // Desktop printing with better error handling
+    attemptPrint()
+  }
+}
+
+const showMobilePrintDialog = () => {
+  return new Promise((resolve) => {
+    // You can implement a proper modal here, but for quick fix:
+    const message = `Printing is limited on mobile devices. 
+Please choose an option:
+
+1. Save as Image (Recommended)
+2. Share Receipt
+3. Copy as Text
+4. Cancel`
+
+    const choice = prompt(message, '1')
+    
+    switch(choice) {
+      case '1':
+        resolve('image')
+        break
+      case '2':
+        resolve('share')
+        break
+      case '3':
+        resolve('copy')
+        break
+      default:
+        resolve('cancel')
+    }
+  })
+}
+
+const attemptPrint = () => {
+  try {
+    // Method 1: Try using an iframe (more reliable)
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'absolute'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = 'none'
+    iframe.style.left = '-9999px'
+    
+    document.body.appendChild(iframe)
+    
+    const receiptHTML = generateReceiptHTML()
+    
+    // Write content to iframe
+    const doc = iframe.contentDocument || iframe.contentWindow.document
+    doc.open()
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - Domemily Enterprise</title>
+        <style>
+          body { 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            padding: 20px; 
+            font-size: 12px; 
+            line-height: 1.4;
+            max-width: 320px;
+          }
+          .receipt-header { text-align: center; margin-bottom: 16px; }
+          .receipt-title { font-weight: bold; font-size: 16px; margin: 0 0 4px 0; }
+          .receipt-subtitle { font-size: 10px; color: #666; margin: 0; }
+          .receipt-items { 
+            border-top: 1px dashed #333; 
+            border-bottom: 1px dashed #333; 
+            padding: 8px 0; 
+            margin-bottom: 8px; 
+          }
+          .receipt-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 2px 0; 
+          }
+          .receipt-total { 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold; 
+            border-bottom: 1px dashed #333; 
+            padding-bottom: 8px; 
+            margin-bottom: 8px; 
+          }
+          .receipt-info { font-size: 10px; color: #666; margin-bottom: 8px; }
+          .receipt-info p { margin: 2px 0; }
+          .receipt-footer { text-align: center; font-size: 10px; color: #666; margin-top: 16px; }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>${receiptHTML}</body>
+      </html>
+    `)
+    doc.close()
+    
+    // Wait for content to load
+    iframe.onload = () => {
+      try {
+        iframe.contentWindow.focus()
+        iframe.contentWindow.print()
+        
+        // Remove iframe after printing
+        setTimeout(() => {
+          document.body.removeChild(iframe)
+        }, 1000)
+      } catch (error) {
+        console.error('Iframe print failed:', error)
+        fallbackPrintMethod()
+      }
+    }
+    
+    // Set a timeout in case onload doesn't fire
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        try {
+          iframe.contentWindow.print()
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe)
+            }
+          }, 1000)
+        } catch (error) {
+          console.error('Timeout print failed:', error)
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe)
+          }
+          fallbackPrintMethod()
         }
-        .receipt-header { text-align: center; margin-bottom: 16px; }
-        .receipt-title { font-weight: bold; font-size: 16px; margin: 0 0 4px 0; }
-        .receipt-subtitle { font-size: 10px; color: #666; margin: 0; }
-        .receipt-items { 
-          border-top: 1px dashed #333; 
-          border-bottom: 1px dashed #333; 
-          padding: 8px 0; 
-          margin-bottom: 8px; 
+      }
+    }, 500)
+    
+  } catch (error) {
+    console.error('Print setup failed:', error)
+    fallbackPrintMethod()
+  }
+}
+
+// Fallback method using window.print()
+const fallbackPrintMethod = () => {
+  try {
+    // Create a print-specific div
+    const printDiv = document.createElement('div')
+    printDiv.id = 'print-receipt-content'
+    printDiv.style.position = 'fixed'
+    printDiv.style.left = '-9999px'
+    printDiv.style.top = '0'
+    printDiv.innerHTML = generateReceiptHTML()
+    
+    document.body.appendChild(printDiv)
+    
+    // Add print-specific CSS
+    const style = document.createElement('style')
+    style.id = 'print-receipt-style'
+    style.textContent = `
+      @media print {
+        body * {
+          visibility: hidden;
         }
-        .receipt-item { 
-          display: flex; 
-          justify-content: space-between; 
-          padding: 2px 0; 
+        #print-receipt-content, #print-receipt-content * {
+          visibility: visible;
         }
-        .receipt-total { 
-          display: flex; 
-          justify-content: space-between; 
-          font-weight: bold; 
-          border-bottom: 1px dashed #333; 
-          padding-bottom: 8px; 
-          margin-bottom: 8px; 
+        #print-receipt-content {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 80mm;
+          font-family: 'Courier New', monospace;
+          font-size: 12px;
         }
-        .receipt-info { font-size: 10px; color: #666; margin-bottom: 8px; }
-        .receipt-info p { margin: 2px 0; }
-        .receipt-footer { text-align: center; font-size: 10px; color: #666; margin-top: 16px; }
-        @media print {
-          body { padding: 0; }
-        }
-      </style>
-    </head>
-    <body>${receiptHTML}</body>
-    </html>
-  `)
-  
-  printWindow.document.close()
-  
-  // Wait for content to load then print
-  setTimeout(() => {
-    printWindow.print()
-    printWindow.close()
-  }, 250)
+      }
+    `
+    document.head.appendChild(style)
+    
+    // Attempt to print
+    window.print()
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(printDiv)
+      document.head.removeChild(style)
+    }, 1000)
+    
+  } catch (error) {
+    console.error('Fallback print failed:', error)
+    showError('Printing failed. Please try saving as an image or copying the text.')
+  }
 }
 
 const shareReceipt = async () => {
@@ -586,6 +738,78 @@ const shareReceipt = async () => {
   }
 }
 
+const downloadReceiptImage = async () => {
+  try {
+    // Show loading state
+    showInfo('Generating receipt image...')
+    
+    // Check if html2canvas is available
+    if (typeof html2canvas === 'undefined') {
+      // Try to load it dynamically
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+      document.head.appendChild(script)
+      
+      await new Promise((resolve, reject) => {
+        script.onload = resolve
+        script.onerror = reject
+        setTimeout(reject, 5000) // 5 second timeout
+      })
+    }
+    
+    const receiptElement = document.getElementById('receipt-content')
+    
+    if (!receiptElement) {
+      throw new Error('Receipt content not found')
+    }
+    
+    // Generate canvas with better options
+    const canvas = await html2canvas(receiptElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: receiptElement.scrollWidth,
+      height: receiptElement.scrollHeight
+    })
+    
+    // Convert to blob
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        throw new Error('Failed to generate image')
+      }
+      
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `receipt-${Date.now()}.png`
+      
+      // For mobile compatibility
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 100)
+      
+      showSuccess('Receipt saved as image!')
+    }, 'image/png', 1.0)
+    
+  } catch (error) {
+    console.error('Error generating image:', error)
+    showError('Could not generate image. Please try copying the text instead.')
+    
+    // Auto-fallback to text copy
+    setTimeout(() => {
+      copyReceiptText()
+    }, 1000)
+  }
+}
+
 const fallbackShare = (text) => {
   // Fallback for browsers that don't support Web Share API
   if (navigator.clipboard) {
@@ -607,40 +831,6 @@ const fallbackShare = (text) => {
       showError('Could not copy receipt. Please try again.')
     }
     document.body.removeChild(textArea)
-  }
-}
-
-const downloadReceiptImage = async () => {
-  try {
-    // Import html2canvas dynamically
-    const html2canvas = await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
-    
-    const receiptElement = document.getElementById('receipt-content')
-    
-    const canvas = await html2canvas.default(receiptElement, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true
-    })
-    
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `receipt-${Date.now()}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      
-      showSuccess('Receipt image downloaded!')
-    }, 'image/png')
-    
-  } catch (error) {
-    console.error('Error generating image:', error)
-    showError('Could not generate image. Please try copying text instead.')
   }
 }
 
