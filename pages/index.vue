@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-20 lg:pb-0">
+  <div class="pt-4 pb-20 lg:pb-0">
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-gray-900 mb-2">New Sale</h2>
@@ -329,21 +329,6 @@
               </div>
             </div>
           </div>
-          
-          <!-- Preview Notice -->
-          <div class="px-6 pb-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div class="flex items-start space-x-2">
-                <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <div class="text-sm text-blue-700">
-                  <p class="font-medium mb-1">This is how your receipt will look when printed</p>
-                  <p class="text-blue-600">The actual printout may vary slightly depending on your printer settings.</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         
         <!-- Action Buttons -->
@@ -583,7 +568,7 @@ const createPrintWindow = () => {
   
   try {
     // Try to create print window
-    const printWindow = window.open('', '_blank', 'width=300,height=600')
+    const printWindow = window.open('', '_blank', 'width=400,height=700')
     
     if (!printWindow) {
       // If popup is blocked, show fallback message
@@ -591,38 +576,184 @@ const createPrintWindow = () => {
       return
     }
     
-    // Build HTML content with proper escaping
+    // Enhanced HTML content with better visibility
     const htmlContent = '<!DOCTYPE html>' +
       '<html>' +
       '<head>' +
-      '<title>Receipt</title>' +
+      '<title>Receipt - Domemily Enterprise</title>' +
       '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+      '<meta charset="UTF-8">' +
       '<style>' +
-      'body { font-family: "Courier New", monospace; font-size: 12px; margin: 0; padding: 20px; text-align: center; max-width: 300px; }' +
-      '.receipt-item { display: flex; justify-content: space-between; margin: 4px 0; }' +
-      '.dashed { border-top: 1px dashed #000; margin: 8px 0; padding-top: 8px; }' +
-      '.total { font-weight: bold; font-size: 16px; }' +
-      '@media print { body { padding: 0; margin: 0; } @page { margin: 10mm; size: 80mm auto; } }' +
+      // Screen styles for better preview
+      'body { ' +
+      '  font-family: "Courier New", "Lucida Console", Monaco, monospace; ' +
+      '  font-size: 16px; ' +
+      '  font-weight: bold; ' +
+      '  line-height: 1.4; ' +
+      '  margin: 20px auto; ' +
+      '  padding: 20px; ' +
+      '  text-align: center; ' +
+      '  max-width: 350px; ' +
+      '  background: white; ' +
+      '  color: #000; ' +
+      '  border: 2px solid #000; ' +
+      '}' +
+      // Header styles
+      '.receipt-header { ' +
+      '  font-size: 20px; ' +
+      '  font-weight: bold; ' +
+      '  letter-spacing: 1px; ' +
+      '  margin-bottom: 15px; ' +
+      '  text-transform: uppercase; ' +
+      '}' +
+      '.receipt-subheader { ' +
+      '  font-size: 14px; ' +
+      '  margin: 5px 0; ' +
+      '}' +
+      // Item styles
+      '.receipt-item { ' +
+      '  display: flex; ' +
+      '  justify-content: space-between; ' +
+      '  margin: 8px 0; ' +
+      '  font-size: 15px; ' +
+      '  font-weight: bold; ' +
+      '  align-items: flex-start; ' +
+      '}' +
+      '.item-name { ' +
+      '  flex: 1; ' +
+      '  text-align: left; ' +
+      '  padding-right: 10px; ' +
+      '  word-wrap: break-word; ' +
+      '}' +
+      '.item-price { ' +
+      '  font-weight: bold; ' +
+      '  white-space: nowrap; ' +
+      '}' +
+      // Separator styles
+      '.dashed { ' +
+      '  border-top: 2px dashed #000; ' +
+      '  margin: 15px 0; ' +
+      '  padding-top: 15px; ' +
+      '}' +
+      '.solid-line { ' +
+      '  border-top: 3px solid #000; ' +
+      '  margin: 15px 0; ' +
+      '  padding-top: 15px; ' +
+      '}' +
+      // Total styles
+      '.total-section { ' +
+      '  font-size: 18px; ' +
+      '  font-weight: bold; ' +
+      '  letter-spacing: 1px; ' +
+      '  margin: 20px 0; ' +
+      '}' +
+      '.total-amount { ' +
+      '  font-size: 22px; ' +
+      '  font-weight: bold; ' +
+      '}' +
+      // Footer styles
+      '.receipt-footer { ' +
+      '  font-size: 13px; ' +
+      '  margin: 15px 0 5px 0; ' +
+      '  text-align: left; ' +
+      '}' +
+      '.thank-you { ' +
+      '  font-size: 16px; ' +
+      '  font-weight: bold; ' +
+      '  margin-top: 20px; ' +
+      '  text-transform: uppercase; ' +
+      '  letter-spacing: 1px; ' +
+      '}' +
+      // Print-specific styles for thermal/receipt printers
+      '@media print { ' +
+      '  body { ' +
+      '    margin: 0 !important; ' +
+      '    padding: 10px !important; ' +
+      '    font-size: 14px !important; ' +
+      '    font-weight: bold !important; ' +
+      '    line-height: 1.3 !important; ' +
+      '    border: none !important; ' +
+      '    background: white !important; ' +
+      '    color: #000 !important; ' +
+      '    -webkit-print-color-adjust: exact !important; ' +
+      '    print-color-adjust: exact !important; ' +
+      '  }' +
+      '  .receipt-header { ' +
+      '    font-size: 18px !important; ' +
+      '    font-weight: bold !important; ' +
+      '    margin-bottom: 10px !important; ' +
+      '  }' +
+      '  .receipt-item { ' +
+      '    font-size: 13px !important; ' +
+      '    font-weight: bold !important; ' +
+      '    margin: 6px 0 !important; ' +
+      '  }' +
+      '  .total-section { ' +
+      '    font-size: 16px !important; ' +
+      '    font-weight: bold !important; ' +
+      '  }' +
+      '  .total-amount { ' +
+      '    font-size: 18px !important; ' +
+      '    font-weight: bold !important; ' +
+      '  }' +
+      '  .dashed { ' +
+      '    border-top: 2px dashed #000 !important; ' +
+      '    margin: 10px 0 !important; ' +
+      '    padding-top: 10px !important; ' +
+      '  }' +
+      '  .solid-line { ' +
+      '    border-top: 3px solid #000 !important; ' +
+      '    margin: 10px 0 !important; ' +
+      '    padding-top: 10px !important; ' +
+      '  }' +
+      '  .receipt-footer { ' +
+      '    font-size: 11px !important; ' +
+      '    margin: 10px 0 !important; ' +
+      '  }' +
+      '  .thank-you { ' +
+      '    font-size: 14px !important; ' +
+      '    font-weight: bold !important; ' +
+      '    margin-top: 15px !important; ' +
+      '  }' +
+      // Page settings for thermal printers
+      '  @page { ' +
+      '    margin: 5mm !important; ' +
+      '    size: 80mm auto !important; ' +
+      '  }' +
+      '}' +
+      // Dark text emphasis for thermal printers
+      '* { ' +
+      '  color: #000 !important; ' +
+      '  background: transparent !important; ' +
+      '}' +
       '</style>' +
       '</head>' +
       '<body>' +
       receiptHTML +
       '<script>' +
       'window.onload = function() {' +
+      // Show preview for a moment before printing
       '  setTimeout(function() {' +
-      '    window.print();' +
-      '    setTimeout(function() {' +
-      '      window.close();' +
-      '    }, 1000);' +
-      '  }, 500);' +
+      '    if (confirm("Ready to print? Click OK to continue or Cancel to review.")) { ' +
+      '      window.print();' +
+      '      setTimeout(function() {' +
+      '        window.close();' +
+      '      }, 1500);' +
+      '    }' +
+      '  }, 800);' +
       '};' +
+      // Prevent accidental closing during print
+      'window.addEventListener("beforeunload", function(e) {' +
+      '  e.preventDefault();' +
+      '  return "Are you sure you want to close? Your receipt may not have printed.";' +
+      '});' +
       '</' + 'script>' +
       '</body>' +
       '</html>'
     
     printWindow.document.write(htmlContent)
     printWindow.document.close()
-    showSuccess('Sending to printer...')
+    showSuccess('Receipt opened for printing...')
     
   } catch (error) {
     console.error('Print failed:', error)
@@ -686,70 +817,109 @@ const fallbackCopy = (text) => {
 const generateReceiptHTML = () => {
   if (!lastTransaction.value) return ''
   
+  // Generate items with better formatting
   const items = lastTransaction.value.items.map(item => {
-    const quantityText = item.quantity > 1 ? ' x' + item.quantity : ''
+    const quantityText = item.quantity > 1 ? ` x${item.quantity}` : ''
     return `<div class="receipt-item">
-      <span>${item.name}${quantityText}</span>
-      <span>${formatCurrency(item.price * item.quantity)}</span>
+      <div class="item-name">${item.name}${quantityText}</div>
+      <div class="item-price">${formatCurrency(item.price * item.quantity)}</div>
     </div>`
   }).join('')
   
+  // Customer information
   const customerInfo = lastTransaction.value.customer ? 
-    `<p style="margin: 2px 0;">Customer: ${lastTransaction.value.customer.name}</p>` : ''
+    `<div style="margin: 5px 0; font-weight: bold;">Customer: ${lastTransaction.value.customer.name}</div>` : 
+    `<div style="margin: 5px 0; font-weight: bold;">Walk-in Customer</div>`
   
-  return `<div style="text-align: center;">
-    <h2 style="margin: 0 0 8px 0; font-size: 18px;">DOMEMILY ENTERPRISE</h2>
-    <p style="margin: 0 0 4px 0; font-size: 10px;">Receipt</p>
-    <p style="margin: 0 0 16px 0; font-size: 10px;">${formatDate(lastTransaction.value.timestamp)}</p>
-    <div class="dashed" style="text-align: left;">${items}</div>
-    <div class="dashed total">
+  // Date formatting
+  const receiptDate = new Date(lastTransaction.value.timestamp)
+  const dateStr = receiptDate.toLocaleDateString() + ' ' + receiptDate.toLocaleTimeString()
+  
+  return `
+    <div class="receipt-header">DOMEMILY ENTERPRISE</div>
+    <div class="receipt-subheader">*** RECEIPT ***</div>
+    <div class="receipt-subheader">${dateStr}</div>
+    
+    <div class="dashed">
+      ${items}
+    </div>
+    
+    <div class="solid-line total-section">
       <div class="receipt-item">
-        <span>TOTAL:</span>
-        <span>${formatCurrency(lastTransaction.value.total)}</span>
+        <div class="item-name">TOTAL:</div>
+        <div class="item-price total-amount">${formatCurrency(lastTransaction.value.total)}</div>
       </div>
     </div>
-    <div style="text-align: left; font-size: 10px; margin: 8px 0;">
-      <p style="margin: 2px 0;">Payment: ${lastTransaction.value.paymentMethod.toUpperCase()}</p>
+    
+    <div class="receipt-footer">
+      <div style="margin: 8px 0; font-weight: bold;">Payment: ${lastTransaction.value.paymentMethod.toUpperCase()}</div>
       ${customerInfo}
     </div>
-    <div style="text-align: center; margin-top: 16px; font-size: 10px;">
-      <p style="margin: 0;">Thank you for your business!</p>
+    
+    <div class="solid-line">
+      <div class="thank-you">THANK YOU!</div>
+      <div style="font-size: 12px; margin-top: 10px; font-weight: bold;">
+        Please keep this receipt<br>
+        for your records
+      </div>
     </div>
-  </div>`
+  `
 }
 
 const generateReceiptText = () => {
   if (!lastTransaction.value) return ''
   
+  const separator = '================================'
+  const dashed = '- - - - - - - - - - - - - - - - -'
+  
+  // Format items
   const items = lastTransaction.value.items.map(item => {
-    const quantityText = item.quantity > 1 ? ' x' + item.quantity : ''
-    return item.name + quantityText + ' - ' + formatCurrency(item.price * item.quantity)
+    const quantityText = item.quantity > 1 ? ` x${item.quantity}` : ''
+    const itemLine = `${item.name}${quantityText}`
+    const price = formatCurrency(item.price * item.quantity)
+    
+    // Create aligned format
+    const maxWidth = 30
+    const spaces = Math.max(1, maxWidth - itemLine.length - price.length)
+    return itemLine + ' '.repeat(spaces) + price
   }).join('\n')
   
+  // Customer info
   const customerInfo = lastTransaction.value.customer ? 
-    'Customer: ' + lastTransaction.value.customer.name : ''
+    `Customer: ${lastTransaction.value.customer.name}` : 'Walk-in Customer'
   
+  // Date
+  const receiptDate = new Date(lastTransaction.value.timestamp)
+  const dateStr = receiptDate.toLocaleDateString() + ' ' + receiptDate.toLocaleTimeString()
+  
+  // Build receipt
   const receiptLines = [
-    'DOMEMILY ENTERPRISE',
-    'Receipt',
-    formatDate(lastTransaction.value.timestamp),
+    separator,
+    '    DOMEMILY ENTERPRISE',
+    '         *** RECEIPT ***',
+    dateStr,
+    separator,
     '',
-    '-'.repeat(32),
     items,
-    '-'.repeat(32),
     '',
-    'TOTAL: ' + formatCurrency(lastTransaction.value.total),
+    dashed,
     '',
-    'Payment: ' + lastTransaction.value.paymentMethod.toUpperCase()
+    `TOTAL: ${formatCurrency(lastTransaction.value.total)}`,
+    '',
+    separator,
+    '',
+    `Payment: ${lastTransaction.value.paymentMethod.toUpperCase()}`,
+    customerInfo,
+    '',
+    separator,
+    '',
+    '        THANK YOU!',
+    '  Please keep this receipt',
+    '     for your records',
+    '',
+    separator
   ]
   
-  if (customerInfo) {
-    receiptLines.push(customerInfo)
-  }
-  
-  receiptLines.push('')
-  receiptLines.push('Thank you for your business!')
-  
-  return receiptLines.join('\n').trim()
+  return receiptLines.join('\n')
 }
 </script>
